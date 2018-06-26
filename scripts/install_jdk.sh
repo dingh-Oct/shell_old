@@ -11,6 +11,7 @@ check_user()
 
 packagename="$1"
 parameter="$#"
+install_dir='/usr/local/java'
 
 source_install_jdk()
 {
@@ -22,8 +23,15 @@ source_install_jdk()
         exit 0
     fi
     
-    tar xf ./"$packagename" && find ./ -maxdepth 1 -type d -amin -1 -name 'jdk*' -exec mv {} /usr/local/java \;
-    echo -e 'export JAVA_HOME=/usr/local/java\nexport PATH=$JAVA_HOME/bin:$PATH' >> /etc/profile
+    tar xf ./"$packagename" && find ./ -maxdepth 1 -type d -amin -1 -name 'jdk*' -exec mv {} "$install_dir" \;
+
+    # 修改环境变量
+    path1=$(egrep '^JAVA_HOME' /etc/profile)
+    if [ -z "$path1" ];then
+        echo -e "JAVA_HOME="$install_dir"\nexport PATH=$JAVA_HOME/bin:$PATH" >> /etc/profile
+    else
+        sed -ir "s/^JAVA_HOME=(.*)/JAVA_HOME="$install_dir"/" /etc/profile
+    fi
 
     . /etc/profile
     java -version &>/dev/null
@@ -35,5 +43,25 @@ source_install_jdk()
         exit 2
     fi
 }
-check_user
-source_install_jdk
+
+check_install()
+{
+    check_user
+    # 检查本机是否安装java
+    java -version &>/dev/null
+    if [ $? -eq 0 ];then
+        read -p "$(echo -e 'java already installed\n1. unstall\n任意键退出 >>>: ')" remove
+        case $remove in
+          1)
+            yum remove java &>/dev/null
+            mv $(egrep 'JAVA_HOME=(.*)' /etc/profile|awk -F'=' '{print $2}') /opt/
+            sed -i '/JAVA_HOME=/d' /etc/profile
+          ;;
+          *)
+            exit 0
+          ;;
+        esac
+    fi
+    source_install_jdk
+}
+check_install
