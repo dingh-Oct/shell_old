@@ -22,7 +22,7 @@ source_install_jdk()
         echo -e "\033[31m scripts_format: sh install_jdk.sh jdk***.tar.gz \033[0m"
         exit 0
     fi
-    
+     
     tar xf ./"$packagename" && find ./ -maxdepth 1 -type d -amin -1 -name 'jdk*' -exec mv {} "$install_dir" \;
 
     # 修改环境变量
