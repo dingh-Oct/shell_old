@@ -1,6 +1,0 @@
-# 脚本下载
-
-# jdk_install_scripts
-wget https://raw.githubusercontent.com/dinghaorui/shell_scripts/master/scripts/install_jdk.sh
-
-
